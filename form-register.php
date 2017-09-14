@@ -1,45 +1,28 @@
 <?php session_start(); ?>
 
 <?php
+/*
+var_dump($_POST);
+die();
+*/
+
     // set the submit messages
     $msg_success = '<span class="success">Success, you have been registered.</span>';
     $msg_unknown = '<span class="error">Something went wrong, please try again.</span>';
     $msg_fail = '<span class="error">One or more fields have an error.</span>';
     $msg_empty = '<span class="error">Please fill in all required fields.</span>';
 
-  /*  $firstname = $_POST['firstname'];
-    $lastname = $_POST['lastname'];
+    // set POST variables to named variables
+    $first_name = $_POST['firstname'];
+    $last_name = $_POST['lastname'];
     $email = $_POST['email'];
-    $password = $_POST['password'];*/
-
-    if (empty($_POST['firstname'])) {
-       $_SESSION['error_first_name'] = "Please enter a first name";
-    }
-    if (empty($_POST['lastname'])) {
-        $_SESSION['$error_last_name'] = "Please enter a last name";
-    }
-    if (empty($_POST['email'])) {
-        $_SESSION['$error_email'] = "Please enter an email";
-    }
-    if (empty($_POST['password'])) {
-        $_SESSION['$error_password'] = "Please enter a password";
-    }
+    $password = $_POST['password'];
     
     // check if all fields have been set (filled out), string corresponds to name attribute of input fields
-    if (isset($_POST['firstname']) && isset($_POST['lastname']) && isset($_POST['email']) && isset($_POST['password'])) {
+    if (isset($first_name) && isset($last_name) && isset($email) && isset($password)) {
     
         $complete_form = true;
-    }
-
-    // if all fields have been filled out then trim any white space from both ends
-    if ($complete_form) {
-            $first_name = trim($_POST['firstname']);
-            $last_name = trim($_POST['lastname']);
-            $email = trim($_POST['email']);
-            $password = trim($_POST['password']);
-    } 
-
-    // SESSION superglobal is an associative array that holds all the stored variables for the session
+    } // SESSION superglobal is an associative array that holds all the stored variables for the session
     // if the fields haven't been filled, out, set the error message to empty
     else {
             $_SESSION['alertMessage'] = $msg_empty;
@@ -49,52 +32,71 @@
             die();
     }
 
-    // if fields have been filled out, validate each field
+    // if all fields have been filled out then trim any white space from both ends
+    if ($complete_form) {
+            $first_name = trim($first_name);
+            $last_name = trim($last_name);
+            $email = trim($email);
+            $password = trim($password);
+    } 
+
+    // validate first name
     $valid_first_name = false;
-    if (isset($_POST['firstname'])) {
+    if (!empty($first_name)) {
        if (strlen($first_name) >= 2) {
-        $valid_first_name = true;
-    } else {
-        $_SESSION['error_first_name'] = "First name is too short, please enter at least 2 characters";
-    }
-    
+            $valid_first_name = true;
+        } else {
+            $_SESSION['error_first_name'] = "First name is too short, please enter at least 2 characters";
+        }
     } else {
         $_SESSION['error_first_name'] = "Please enter a first name";
     }
-    
 
-    // if fields have been filled out, validate each field
+    // validate last name
     $valid_last_name = false;
-    if (strlen($last_name) >= 2) {
-        $valid_last_name = true;
+    if (!empty($last_name)) {
+        if (strlen($last_name) >= 2) {
+            $valid_last_name = true;
+        } else {
+         $_SESSION['error_last_name'] = "Last name is too short, please enter at least 2 characters";
+        }
     } else {
-        $_SESSION['error_last_name'] = "Last name is too short, please enter at least 2 characters";
+        $_SESSION['error_last_name'] = "Please enter a last name";
     }
-
+    
+    // validate email
     // filter that checks if valid email address
     $valid_email = false;
-    if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $valid_email = true;
-    } else {
-       $_SESSION['error_email'] = "Email address is invalid";
+     if (!empty($email)) {
+        if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $valid_email = true;
+        } else {
+           $_SESSION['error_email'] = "Email address is invalid";
+        }
+     } else {
+        $_SESSION['error_email'] = "Please enter an email address";
     }
-
+    
     // validate password
     $valid_password = false;
-    if (strlen($password) >= 8) {
-        $valid_password = true;
-    } else {
-        $_SESSION['error_password'] = "Password is too short, please enter at least 8 characters";
+     if (!empty($password)) {
+        if (strlen($password) >= 8) {
+            $valid_password = true;
+        } else {
+            $_SESSION['error_password'] = "Password is too short, please enter at least 8 characters";
+        }
+     } else {
+        $_SESSION['error_password'] = "Please enter a password";
     }
 
     // if everything is valid then set valid_form to true
     $valid_form = $valid_first_name && $valid_last_name && $valid_email && $valid_password;
     
         if ($valid_form) {
-             // Create connection
+             // create the connection
             include('config.php');
 
-            // Check connection
+            // check connection
             if ($db->connect_error) {
                 die("Connection failed: " . $db->connect_error);
             } 
@@ -107,6 +109,7 @@
                 echo "Error: " . $add_data . "<br>" . $db->error;
             }
             
+            // close connection
             $db->close();
             
             header("Location: login.php");

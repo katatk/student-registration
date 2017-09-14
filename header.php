@@ -1,24 +1,3 @@
-<?php
-
-// create database connection - 2 different ways
-/*$mysqli = mysqli_connect("localhost","root","","east1922");
-$mysqli = new mysqli("localhost","root","","east1922");
-
- check the database connection 
-if ($mysqli->connect_errno) {
-    echo "Failed to connect to MySQL: (" . $mysqli->connect_errno . ") " . $mysqli->connect_error;
-}
-    echo "<script>console.log('on and connected');</script>";
-
-// query the database, store in a variable to be accessed later, data is returned as rows
-$query = "SELECT * FROM students";
-$result = $mysqli->query($query);
-
-$mysqli->close();
-*/
-
-?>
-
     <!DOCTYPE html>
     <html lang="en">
 
@@ -58,7 +37,7 @@ $mysqli->close();
                 display: block;
             }
             
-            h1 {
+            h1, .error {
                 margin-bottom: 0.5em;
                 margin-top: 0;
             }
@@ -68,7 +47,7 @@ $mysqli->close();
             }
             
             #wrapper {
-                max-width: 300px;
+                max-width: 360px;
                 margin: 5rem auto;
                 border: 1px solid #d8dee2;
                 border-radius: 5px;

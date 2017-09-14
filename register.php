@@ -15,27 +15,51 @@
       
             
             <label for="firstname">First Name</label>
-            <input type="text" name="firstname" id="firstname" value="<?php if (isset($POST_['firstname'])) echo $first_name; ?>"><br>
+            <input type="text" name="firstname" id="firstname" value="<?php if (isset($POST_['firstname'])) echo $first_name;?>">
             <div class="error">
-                <?php if (isset($_SESSION['error_first_name'])) { echo $_SESSION['error_first_name']; }; ?>
+                <?php 
+                if (isset($_SESSION['error_first_name'])) { 
+                    echo $_SESSION['error_first_name']; 
+                    // empty the error message
+                    unset($_SESSION['error_first_name']);
+                }; 
+                ?>
             </div>
             
             <label for="lastname">Last Name</label>
-            <input type="text" name="lastname" id="lastname" value="<?php if (isset($POST_['lastname'])) echo $last_name; ?>"><br>
+            <input type="text" name="lastname" id="lastname" value="<?php if (!empty($last_name)) echo $last_name;?>">
             <div class="error">
-                <?php if (isset($_SESSION['error_last_name'])) { echo $_SESSION['error_last_name']; }; ?>
+                <?php 
+                if (isset($_SESSION['error_last_name'])) { 
+                    echo $_SESSION['error_last_name']; 
+                    // empty the error message
+                    unset($_SESSION['error_last_name']);
+                }; 
+                ?>
             </div>
             
             <label for="email">Email</label>
-            <input type="email" name="email" id="email" value="<?php if (isset($POST_['email'])) echo $email; ?>"><br>
+            <input type="email" name="email" id="email" value="<?php if (isset($POST_['email'])) echo $email;?>">
             <div class="error">
-                <?php if (isset($_SESSION['error_email'])) { echo $_SESSION['error_email']; }; ?>
+            <?php 
+                if (isset($_SESSION['error_email'])) { 
+                    echo $_SESSION['error_email']; 
+                    // empty the error message
+                    unset($_SESSION['error_email']);
+                }; 
+            ?>
             </div>
             
             <label for="password">Password</label>
-            <input type="password" name="password" id="password" value="<?php if (isset($POST_['password'])) echo $password; ?>"><br>
+            <input type="password" name="password" id="password" value="<?php if (isset($POST_['password'])) echo $password;?>">
             <div class="error">
-                 <?php if (isset($_SESSION['error_password'])) { echo $_SESSION['error_password']; }; ?>
+            <?php 
+                if (isset($_SESSION['error_password'])) { 
+                    echo $_SESSION['error_password']; 
+                    // empty the error message
+                    unset($_SESSION['error_password']);
+                }; 
+            ?>
             </div>
             
             <input type="submit" value="Submit" name="submit">
