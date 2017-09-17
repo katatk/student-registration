@@ -1,125 +1,116 @@
-<?php session_start(); ?>
- 
-   <?php 
-    // set the submit messages
-    $msg_unknown = '<span class="error">Something went wrong, please try again.</span>';
-    $msg_fail = '<span class="error">One or more fields have an error.</span>';
-    $msg_empty = '<span class="error">Please fill in all required fields.</span>';
+<?php
+session_start();
 
+// user can only access form-login via the POST method, not GET (typing directly into the address bar)
+if (empty($_POST['submit'])) {
+  header('Location: login.php');
+  die(); 
+} 
 
-    /*$email = $_POST['email'];
-    $password = $_POST['password']; */
+// set the submit messages
+$msg_fail = '<span class="error">One or more fields have an error.</span>';
+$msg_empty = '<span class="error">Please fill in all required fields.</span>';
 
-    if (empty($_POST['email'])) {
-            $error_login_email = "Please enter an email";
-    }
-    if (empty($_POST['password'])) {
-            $error_login_password = "Please enter a password";
-    }
+// set POST values to variables
+$email = $_POST['email'];
+$password = $_POST['password'];
 
-    $complete_form = false;
+// set the placeholders
+$_SESSION['placeholder_email'] = $email;
+$_SESSION['placeholder_password'] = $password;
 
-    // check if all fields have been set (filled out), string corresponds to name attribute of input fields
-    if (isset($_POST['email']) && isset($_POST['password'])) {
-        $complete_form = true;
-    }
+// if no fields have been filled out
+if (empty($email) && empty($password)) {
+     $_SESSION['alertMessage'] = $msg_empty;
+     header("Location: login.php");
+     die();
+} 
 
-    // if all fields have been filled out then trim any white space from both ends
-    if ($complete_form) {
-            $email = trim($_POST['email']);
-            $password = trim($_POST['password']);
-    } 
+// function that removes white space, slashes and HTML special characters - for displaying data, stops scripts being sent to user, NOT for preventing SQL injection
+function clean_input($data) {
+  $data = trim($data);
+  $data = stripslashes($data);
+  $data = htmlspecialchars($data);
+  return $data;
+}
 
-    // SESSION superglobal is an associative array that holds all the stored variables for the session
-    // if the fields haven't been filled, out, set the error message to empty
-    else {
-          /*  $_SESSION['alertMessage'] = $msg_empty;*/
-            echo "Something";
-        // send client to index page then stop the script
-           /* header("Location: login.php");*/
-            die();
-    }
-
-    // filter that checks if valid email address
-    $valid_email = false;
+// filter that checks if valid email address
+$valid_email = false;
+if (!empty($email)) {
     if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $valid_email = true;
+        $email = clean_input($email);
     } else {
-        $error_login_email= "<li>Email address is invalid</li>";
+           $_SESSION['error_email'] = "Email address is invalid";
+        }
+     } else {
+        $_SESSION['error_email'] = "Please enter an email address";
     }
 
-    $valid_password = true;
-
-    // if everything is valid then set valid_form to true
-    $valid_form = $valid_email && $valid_password;
-
-
-    if ($valid_form) {
-        // Create connection
-       include 'config.php';
-
-        // Check connection
-        if ($db->connect_error) {
-            die("Connection failed: " . $db->connect_error);
-        } 
-
-        // create query
-        $sql = "SELECT * FROM students";
-        $result = $db->query($sql);
-
-        // check if query ran
-        /*if ($db->query($sql) === TRUE) {
-            echo "Password retrieved successfully";
-        } else {
-            echo "Query did not submit: " . $add_data . "<br>" . $db->error;
-        }*/
-
-        // if some data exists
-        if ($result->num_rows > 0){
-             echo "<h3>Stored Data</h3>";
-            while($row = $result->fetch_assoc()) {
-                $stored_email = $row["email"];
-                echo $stored_email . ": ";
-                $stored_password = $row["password"];
-                echo $stored_password . "<br>";
-            }
+// validate password
+    $valid_password = false;
+     if (!empty($password)) {
+         $valid_password = true;
+     } else {
+        $_SESSION['error_password'] = "Please enter a password";
         }
 
-        // output the user input
-        echo "<h3>User Input</h3>";
-        echo $email . ":";
-        echo $password . "<br>";
+// if everything is valid then set valid_form to true
+$valid_form = $valid_email && $valid_password;
 
-        // create query
-        $sql = "SELECT * FROM students WHERE email='$email'";
-        $result = $db->query($sql);
 
-     // if some data exists
-        if ($result->num_rows > 0){
-              echo "<h3>Matches</h3>";
-            while($row = $result->fetch_assoc()) {
+if ($valid_form) {
+    // Create connection
+   include 'config.php';
 
-                $stored_email = $row["email"];
-                echo $stored_email . ": ";
-                $stored_password = $row["password"];
-                echo $stored_password . "<br>";
-            }
+    
+    $stmt = $db->prepare("SELECT * FROM students WHERE email='$email'");
+    $stmt->bind_param('s', $email);    
+
+    $result = $db->query($stmt);
+
+    // if some data exists
+    if ($result->num_rows > 0){
+         echo "<h3>Stored Data</h3>";
+        while($row = $result->fetch_assoc()) {
+            $stored_email = $row["email"];
+            echo $stored_email . ": ";
+            $stored_password = $row["password"];
+            echo $stored_password . "<br>";
         }
+    }
 
-         $db->close();
+    // output the user input
+    echo "<h3>User Input</h3>";
+    echo $email . ":";
+    echo $password . "<br>";
 
-    // check if stored password matches the submitted password
-    if ($stored_email == $email && $stored_password == $password) {
-        header("Location: welcome.php");
+    // create query
+    $sql = "SELECT password FROM students WHERE email='$email'";
+    $result = $db->query($sql);
+
+ // if some data exists
+    if ($result->num_rows > 0){
+        while($row = $result->fetch_assoc()) {
+            $stored_password = $row["password"];
+            $result = password_verify($password, $stored_password);            
+        }
+    }
+
+     $db->close();
+
+// check if stored password matches the submitted password
+if ($result) {
+    header("Location: welcome.php");
+    die();
+ }
+
+   /* else {
+        $_SESSION['alertMessage'] = $msg_error;
+        $_SESSION['postData'] = $_POST;
+        header("Location: login");
         die();
-     }
-
-       /* else {
-            $_SESSION['alertMessage'] = $msg_error;
-            $_SESSION['postData'] = $_POST;
-            header("Location: login");
-            die();
-        }*/
+    }*/
 
 }
 ?>

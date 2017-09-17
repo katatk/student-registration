@@ -1,68 +1,71 @@
-<?php session_start(); ?>
-
 <?php
-/*
-var_dump($_POST);
-die();
-*/
+session_start();
 
-    // set the submit messages
-    $msg_success = '<span class="success">Success, you have been registered.</span>';
-    $msg_unknown = '<span class="error">Something went wrong, please try again.</span>';
-    $msg_fail = '<span class="error">One or more fields have an error.</span>';
-    $msg_empty = '<span class="error">Please fill in all required fields.</span>';
+// user can only access form-register via the POST method, not GET (typing directly into the address bar)
+if (empty($_POST['submit'])) {
+  header('Location: register.php');
+  die(); 
+} 
 
-    // set POST variables to named variables
-    $first_name = $_POST['firstname'];
-    $last_name = $_POST['lastname'];
-    $email = $_POST['email'];
-    $password = $_POST['password'];
-    
-    // check if all fields have been set (filled out), string corresponds to name attribute of input fields
-    if (isset($first_name) && isset($last_name) && isset($email) && isset($password)) {
-    
-        $complete_form = true;
-    } // SESSION superglobal is an associative array that holds all the stored variables for the session
-    // if the fields haven't been filled, out, set the error message to empty
-    else {
-            $_SESSION['alertMessage'] = $msg_empty;
-            $_SESSION['postData'] = $_POST;
-            // send client to index page then stop the script
-            header("Location: register.php");
-            die();
-    }
+// set the submit messages
+$msg_fail = 'One or more fields have not been filled out correctly.';
+$msg_empty = 'Please fill in all required fields.';
 
-    // if all fields have been filled out then trim any white space from both ends
-    if ($complete_form) {
-            $first_name = trim($first_name);
-            $last_name = trim($last_name);
-            $email = trim($email);
-            $password = trim($password);
-    } 
+// set POST values to variables
+$first_name = $_POST['firstname'];
+$last_name = $_POST['lastname'];
+$email = $_POST['email'];
+$password = $_POST['password'];
+$password_confirm = $_POST['password-confirm'];
 
+// set the placeholders
+$_SESSION['placeholder_first_name'] = $first_name;
+$_SESSION['placeholder_last_name'] = $last_name;
+$_SESSION['placeholder_email'] = $email;
+$_SESSION['placeholder_password'] = $password;
+$_SESSION['placeholder_password_confirm'] = $password_confirm;
+
+// if no fields have been filled out
+if (empty($first_name) && empty($last_name) && empty($email) && empty($password) && empty($password_confirm)) {
+     $_SESSION['alertMessage'] = $msg_empty;
+     header("Location: register.php");
+     die();
+} 
+
+// function that removes white space, slashes and HTML special characters - for displaying data, stops scripts being sent to user, NOT for preventing SQL injection
+function clean_input($data) {
+  $data = trim($data);
+  $data = stripslashes($data);
+  $data = htmlspecialchars($data);
+  return $data;
+}
+
+    // if fields have been filled out, go through each and validate
     // validate first name
     $valid_first_name = false;
     if (!empty($first_name)) {
        if (strlen($first_name) >= 2) {
             $valid_first_name = true;
+            $first_name = clean_input($first_name);
         } else {
             $_SESSION['error_first_name'] = "First name is too short, please enter at least 2 characters";
         }
     } else {
         $_SESSION['error_first_name'] = "Please enter a first name";
-    }
+        }
 
     // validate last name
     $valid_last_name = false;
     if (!empty($last_name)) {
         if (strlen($last_name) >= 2) {
             $valid_last_name = true;
+            $last_name = clean_input($last_name);
         } else {
          $_SESSION['error_last_name'] = "Last name is too short, please enter at least 2 characters";
         }
     } else {
         $_SESSION['error_last_name'] = "Please enter a last name";
-    }
+        }
     
     // validate email
     // filter that checks if valid email address
@@ -70,12 +73,13 @@ die();
      if (!empty($email)) {
         if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $valid_email = true;
+            $email = clean_input($email);
         } else {
            $_SESSION['error_email'] = "Email address is invalid";
         }
      } else {
         $_SESSION['error_email'] = "Please enter an email address";
-    }
+        }
     
     // validate password
     $valid_password = false;
@@ -87,177 +91,89 @@ die();
         }
      } else {
         $_SESSION['error_password'] = "Please enter a password";
+        }
+
+
+    $valid_password_confirm = false;
+    if (!empty($password_confirm)) {
+        if ($password_confirm === $password) {
+            $valid_password_confirm = true;
+            // if passwords match, hash the original password
+            // cost represents how many times you run the hash function will take longer to crack the higher the cost
+            $hashed_password = password_hash($password, PASSWORD_DEFAULT, ['cost' => 12]);
+            
+        } else {
+            $_SESSION['error_password_confirm'] = "Passwords do not match";
+        } 
+    } else {
+        $_SESSION['error_password_confirm'] = "Please confirm password";
     }
 
     // if everything is valid then set valid_form to true
-    $valid_form = $valid_first_name && $valid_last_name && $valid_email && $valid_password;
+    $valid_form = $valid_first_name && $valid_last_name && $valid_email && $valid_password &&  $valid_password_confirm;
     
-        if ($valid_form) {
-             // create the connection
-            include('config.php');
-
-            // check connection
-            if ($db->connect_error) {
-                die("Connection failed: " . $db->connect_error);
-            } 
-            // insert the data
-            $add_data = "INSERT INTO students (firstname, lastname, email, password) VALUES ('$first_name', '$last_name', '$email', '$password')";
-
-            if ($db->query($add_data) === TRUE) {
-                echo "New record created successfully";
-            } else {
-                echo "Error: " . $add_data . "<br>" . $db->error;
-            }
-            
-            // close connection
-            $db->close();
-            
-            header("Location: login.php");
-            die();
-        }
-        else {
-                $_SESSION['alertMessage'] = $msg_fail;
-               /* $_SESSION['postData'] = $_POST;*/
-                header("Location: register.php");
-                die();
-        }
-/*}*/
-
-
-
-/*                $firstname = "";
-                $lastname = "";
-                $dob = '2010-11-11';
-                $nat = "";
-                $gender = "";
-    
-                $errorFirstName = "";
-                $errorLastName = "";
-                $errorDob = "";
-                $errorNat = "";
-                $errorGender = "";
-    
-                $formValid = false;
-    
-                $validFirstName = false;
-                $validLastName = false;
-                $validDob = false;
-                $validNat = false;
-                $validGender = false;
-
-                
-            if ($_SERVER["REQUEST_METHOD"] == "POST") {
-                
-                $firstname = (($_POST["first-name"]));
-                $lastname = (($_POST["last-name"]));
-                $dob = (($_POST["dob"]));
-                $nat =(($_POST["nat"]));
-                $gender = (($_POST["gender"]));
-                validateForm();
-            }
-                
-               function validateFirstName($firstnameparam) {
-              if (empty($firstnameparam)) {
-                $errorFirstName = "First name is required";
-                return false;
-                  
-              } else {
-                $firstname = test_input($firstnameparam);
-                if (!preg_match("/^[a-zA-Z]{2,}$/",$firstname)) {
-                  $errorFirstName = $firstname . " is not a valid first first name";
-                    
-                }
-              }
-                   
-               }
-            
-            function validateLastName($lastnameparam) {
-              if (empty($lastnameparam)) {
-                $errorLastName = "Last name is required";
-              } else {
-                $lastname = test_input($lastnameparam);
-                if (!preg_match("/^[a-zA-Z]{2,}$/",$lastname)) {
-                  $errorLastName = $lastname . " is not a valid last name";
-                }
-              }
-                  
-              }
-                
-             function validateDob($dobparam) { 
-              if (empty($dobparam)) {
-                $errorDob = "Date of birth is required";
-              } else {
-                $dob = test_input($dobparam);
-                if (!preg_match("/[0-9]{4}\-{1}[0-9]{2}\-{1}[0-9]{2}/",$dob)) {
-                  $errorDob = $dob . " is not a valid date of birth, please enter in the format YYYY-MM-DD";
-                    }
-                }
-                 
-             }
-                
-            function validateNat($natparam) { 
-              if (empty($natparam)) {
-                $errorNat = "Nationality is required";
-              } else {
-                $nat = test_input($natparam);
-                if (!preg_match("/^[a-zA-Z ]+$/",$nat)) {
-                  $errorFirstName = $nat . " is not a valid nationality";
-                }
-              }
-            }
-                  
-      function validateGender($genderparam) { 
-              if (empty($genderparam)) {
-                $errorGender = "Gender is required";
-              } else {
-                $gender = test_input($genderparam);
-                if (!preg_match("/^[a-zA-Z ]+$/",$gender)) {
-                  $errorGender = $gender . " is not a valid gender";
-                }
-              }
-                
-            }
-                
-             function test_input($data) {
-              $data = trim($data);
-              $data = stripslashes($data);
-              $data = htmlspecialchars($data);
-              return $data;
-            }
-    
-    
-    
-    function validateForm() {
-
-        // if all fields are valid, form is ready to submit
-        if ($validFirstName && $validLastName && $validDob && $validNat && $validGender) {
-            $formValid = true;   
-        }
+    if ($valid_form) {
+        // create the connection
+        include('config.php');
         
+         // create query to check if email already exists in the database
+        $stmt = $db->prepare("SELECT email FROM students WHERE email=?");
+        // bind parameters
+        $stmt->bind_param('s', $email); 
+        
+         // running insert statement
+        if ($stmt->execute() === TRUE) {
+            echo "Email checked successfully";
+        } else {
+            echo "Error: " . $db->error;
+        }
+
+        // bind result variables
+        $stmt->bind_result($stored_email);
+
+        // fetch value
+        $stmt->fetch();
+        
+        // close statement
+        $stmt->close();
+        
+      
+    // check email is unique
+    if ($stored_email === $email) {
+
+    $_SESSION['error_email'] = "That email address is already taken, please use another or <a href='login'>login here</a>";
+   
+    // go back to the register page
+    header("Location: register.php");
+    die();
+    } else {
+        // remove error message
+        unset($_SESSION['error_email']);
     }
-    
-        // if all form fields are valid, add the add to the database
-        if ($formValid) {
-    
-            // Create connection
-            $db = db_connect("localhost","root","","east1922");
-
-            // Check connection
-            if ($db->connect_error) {
-                die("Connection failed: " . $db->connect_error);
-            } 
-
-            $add_data = "INSERT INTO students (firstname, lastname, dob, nat, gender) VALUES ('$firstname', '$lastname', '$dob', '$nat', '$gender')";
-
-            if ($db->query($add_data) === TRUE) {
-                echo "New record created successfully";
-            } else {
-                echo "Error: " . $add_data . "<br>" . $db->error;
-            }
-            
-            $db->close();
         
-        }*/
+    // if data is valid, insert into database
 
-       
-        ?>
+    // creates the statement, prepare removes SQL syntax to prevent SQL injection attacks eg someone typing 'DROP table students' into a field
+    $stmt = $db->prepare("INSERT INTO students (firstname, lastname, email, password) VALUES (?, ?, ?, ?)");
+    $stmt->bind_param('ssss', $first_name, $last_name, $email, $hashed_password);
+
+    // running insert statement
+    if ($stmt->execute() === TRUE) {
+        echo "New record created successfully";
+    } else {
+        echo "Error: " . $db->error;
+    }
+
+    // close statement
+    $stmt->close();
+    // close connection
+    $db->close();
+
+    header("Location: login.php");
+    die();
+        
+    } else {
+        $_SESSION['alertMessage'] = $msg_fail;
+        header("Location: register.php");
+        die();
+    }
