@@ -1,5 +1,7 @@
-<?php session_start(); ?>
-<?php include 'header.php'; ?>
+<?php 
+session_start();
+include 'header.php';
+?>
 
        <h2>Register</h2>
         <form method="post" action="form-register.php" enctype="multipart/form-data">
@@ -13,7 +15,6 @@
                 <?php 
                 if (isset($_SESSION['error_first_name'])) { 
                     echo $_SESSION['error_first_name']; 
-                    // empty the error message
                     unset($_SESSION['error_first_name']);
                 }; 
                 ?>
@@ -28,7 +29,6 @@
                 <?php 
                 if (isset($_SESSION['error_last_name'])) { 
                     echo $_SESSION['error_last_name']; 
-                    // empty the error message
                     unset($_SESSION['error_last_name']);
                 }; 
                 ?>
@@ -37,13 +37,13 @@
             <label for="email">Email</label>
             <input type="text" name="email" id="email" value="<?php 
                 if (isset($_SESSION['placeholder_email'])) 
-                    echo $_SESSION['placeholder_email']; unset($_SESSION['placeholder_email']);
+                    echo $_SESSION['placeholder_email'];
+                    unset($_SESSION['placeholder_email']);
                 ?>">
             <div class="error">
             <?php 
                 if (isset($_SESSION['error_email'])) { 
                     echo $_SESSION['error_email']; 
-                    // empty the error message
                     unset($_SESSION['error_email']);
                 }; 
             ?>
@@ -58,7 +58,6 @@
             <?php 
                 if (isset($_SESSION['error_password'])) { 
                     echo $_SESSION['error_password']; 
-                    // empty the error message
                     unset($_SESSION['error_password']);
                 }; 
             ?>
@@ -73,7 +72,6 @@
             <?php 
                 if (isset($_SESSION['error_password_confirm'])) { 
                     echo $_SESSION['error_password_confirm']; 
-                    // empty the error message
                     unset($_SESSION['error_password_confirm']);
                 }; 
             ?>
@@ -103,6 +101,6 @@
         ?>
             </span>
         </div>
-
+        <div class="login-register">Already have an account? <a href="login.php">Login here</a></div>
 
 <?php include 'footer.php'; ?>

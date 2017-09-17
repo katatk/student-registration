@@ -8,8 +8,9 @@ if (empty($_POST['submit'])) {
 } 
 
 // set the submit messages
-$msg_fail = '<span class="error">One or more fields have an error.</span>';
-$msg_empty = '<span class="error">Please fill in all required fields.</span>';
+$msg_fail = 'One or more fields have an error.';
+$msg_empty = 'Please fill in all required fields.';
+$msg_unknown = 'Something went wrong.';
 
 // set POST values to variables
 $email = $_POST['email'];
@@ -45,72 +46,78 @@ if (!empty($email)) {
         }
      } else {
         $_SESSION['error_email'] = "Please enter an email address";
-    }
+        }
 
 // validate password
-    $valid_password = false;
-     if (!empty($password)) {
-         $valid_password = true;
-     } else {
-        $_SESSION['error_password'] = "Please enter a password";
-        }
+$valid_password = false;
+ if (!empty($password)) {
+     $valid_password = true;
+ } else {
+    $_SESSION['error_password'] = "Please enter a password";
+    }
 
 // if everything is valid then set valid_form to true
 $valid_form = $valid_email && $valid_password;
 
-
 if ($valid_form) {
     // Create connection
-   include 'config.php';
-
+    include 'config.php';
     
-    $stmt = $db->prepare("SELECT * FROM students WHERE email='$email'");
+    // check if email exists in database
+    $stmt = $db->prepare("SELECT email, password FROM students WHERE email=?");
     $stmt->bind_param('s', $email);    
 
-    $result = $db->query($stmt);
-
-    // if some data exists
-    if ($result->num_rows > 0){
-         echo "<h3>Stored Data</h3>";
-        while($row = $result->fetch_assoc()) {
-            $stored_email = $row["email"];
-            echo $stored_email . ": ";
-            $stored_password = $row["password"];
-            echo $stored_password . "<br>";
+      // running insert statement
+        if ($stmt->execute() === TRUE) {
+            echo "Email checked successfully";
+        } else {
+            echo "Error: " . $db->error;
         }
+
+        // bind result variables
+        $stmt->bind_result($stored_email, $stored_password);
+ 
+        // fetch value
+        $stmt->fetch();
+        
+        // close statement
+        $stmt->close();
+    
+        // close the connection
+        $db->close();
+    
+    // if email address does not exist, redirect back to login page with an error message
+    
+    if ($stored_email === NULL) {
+        echo "another something";
+         $_SESSION['error_email'] = "That email address does not exist";
+         $_SESSION['alertMessage'] = $msg_fail;
+         header("Location: login.php");
+         die();
     }
-
-    // output the user input
-    echo "<h3>User Input</h3>";
-    echo $email . ":";
-    echo $password . "<br>";
-
-    // create query
-    $sql = "SELECT password FROM students WHERE email='$email'";
-    $result = $db->query($sql);
-
- // if some data exists
-    if ($result->num_rows > 0){
-        while($row = $result->fetch_assoc()) {
-            $stored_password = $row["password"];
-            $result = password_verify($password, $stored_password);            
-        }
-    }
-
-     $db->close();
-
-// check if stored password matches the submitted password
-if ($result) {
-    header("Location: welcome.php");
-    die();
- }
-
-   /* else {
-        $_SESSION['alertMessage'] = $msg_error;
-        $_SESSION['postData'] = $_POST;
-        header("Location: login");
+    
+    // check the password in the database against the user submitted password
+    $correct_password = password_verify($password, $stored_password); 
+   /* 
+    var_dump($password);
+    var_dump($stored_password);
+    var_dump($correct_password);*/
+    
+    // if matching, send user to welcome page
+    if ($correct_password) {
+        $_SESSION['logged_in'] = true;
+        header("Location: welcome.php");
         die();
-    }*/
+    } else {
+         $_SESSION['error_password'] = "Your password is incorrect";
+         $_SESSION['alertMessage'] = $msg_fail;
+         header("Location: login.php");
+         die();
+    }
 
+} else {
+    $_SESSION['alertMessage'] = $msg_fail;
+    header("Location: login.php");
+    die();
 }
 ?>

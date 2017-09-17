@@ -8,7 +8,7 @@ if (empty($_POST['submit'])) {
 } 
 
 // set the submit messages
-$msg_fail = 'One or more fields have not been filled out correctly.';
+$msg_fail = 'One or more fields have an error.';
 $msg_empty = 'Please fill in all required fields.';
 
 // set POST values to variables
@@ -95,7 +95,7 @@ function clean_input($data) {
 
 
     $valid_password_confirm = false;
-    if (!empty($password_confirm)) {
+    if (!empty($password_confirm) && (!empty($password))) {
         if ($password_confirm === $password) {
             $valid_password_confirm = true;
             // if passwords match, hash the original password
@@ -105,8 +105,6 @@ function clean_input($data) {
         } else {
             $_SESSION['error_password_confirm'] = "Passwords do not match";
         } 
-    } else {
-        $_SESSION['error_password_confirm'] = "Please confirm password";
     }
 
     // if everything is valid then set valid_form to true
@@ -137,18 +135,15 @@ function clean_input($data) {
         // close statement
         $stmt->close();
         
-      
     // check email is unique
     if ($stored_email === $email) {
 
     $_SESSION['error_email'] = "That email address is already taken, please use another or <a href='login'>login here</a>";
+    $_SESSION['alertMessage'] = $msg_fail;
    
     // go back to the register page
     header("Location: register.php");
     die();
-    } else {
-        // remove error message
-        unset($_SESSION['error_email']);
     }
         
     // if data is valid, insert into database
@@ -167,13 +162,13 @@ function clean_input($data) {
     // close statement
     $stmt->close();
     // close connection
-    $db->close();
+    $db->close();    
 
     header("Location: login.php");
     die();
         
-    } else {
-        $_SESSION['alertMessage'] = $msg_fail;
-        header("Location: register.php");
-        die();
-    }
+} else {
+    $_SESSION['alertMessage'] = $msg_fail;
+    header("Location: register.php");
+    die();
+}

@@ -1,4 +1,5 @@
-<?php session_start();
+<?php 
+session_start();
 include 'header.php';
 ?>
 
@@ -7,15 +8,15 @@ include 'header.php';
  <form method="post" action="form-login.php" enctype="multipart/form-data">
 
  <label for="email">Email</label>
-            <input type="email" name="email" id="email" value="<?php 
+            <input type="text" name="email" id="email" value="<?php 
                 if (isset($_SESSION['placeholder_email'])) 
-                    echo $_SESSION['placeholder_email']; unset($_SESSION['placeholder_email']);
+                    echo $_SESSION['placeholder_email']; 
+                   /* unset($_SESSION['placeholder_email']);*/
                 ?>">
             <div class="error">
                <?php 
                 if (isset($_SESSION['error_email'])) { 
                     echo $_SESSION['error_email']; 
-                    // empty the error message
                     unset($_SESSION['error_email']);
                 }; 
             ?>
@@ -24,13 +25,12 @@ include 'header.php';
             <label for="password">Password</label>
             <input type="password" name="password" id="password" value="<?php 
                 if (isset($_SESSION['placeholder_password'])) 
-                    echo $_SESSION['placeholder_password']; unset($_SESSION['placeholder_password']);
+                    echo $_SESSION['placeholder_password']; /*unset($_SESSION['placeholder_password']);*/
                 ?>">
             <div class="error">
                 <?php 
                 if (isset($_SESSION['error_password'])) { 
                     echo $_SESSION['error_password']; 
-                    // empty the error message
                     unset($_SESSION['error_password']);
                 }; 
             ?>
@@ -59,6 +59,8 @@ include 'header.php';
                    ?>    
             </span>
              </div>
+             
+             <div class="login-register">Don't have an account? <a href="register.php">Create one here</a></div>
        
 
 <?php include 'footer.php'; ?>

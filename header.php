@@ -104,6 +104,10 @@
             color: #6b4de8;
         }
         
+        .login-register {
+            text-align: left;
+        }
+        
         
     </style>
 
